@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\ControleFacil.Api",
+    "\\src\\ControleFacil.Api\\Domain",
+    "\\src\\ControleFacil.Api\\Domain\\Models",
+    "\\src\\ControleFacil.Api\\Domain\\Services",
+    "\\src\\ControleFacil.Api\\Domain\\Services\\Class"
+  ],
+  "PreviewInSolutionExplorer": false
+}
