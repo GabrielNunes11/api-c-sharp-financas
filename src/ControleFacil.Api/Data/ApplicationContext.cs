@@ -23,6 +23,7 @@ namespace ControleFacil.Api.Data
             modelBuilder.ApplyConfiguration(new NatureReleaseMap());
             modelBuilder.ApplyConfiguration(new ToPayMap());
             modelBuilder.ApplyConfiguration(new ToReceiveMap());
+            ///
         }
     }
 }
