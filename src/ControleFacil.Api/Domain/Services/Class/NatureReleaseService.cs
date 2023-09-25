@@ -72,7 +72,7 @@ namespace ControleFacil.Api.Domain.Services.Class
         {
             var natureRelease = await _natureReleaseRepository.GetById(id);
 
-            if(natureRelease is null || natureRelease.UserId != userId)
+            if (natureRelease is null || natureRelease.UserId != userId)
             {
                 throw new Exception("Não foi possível encontrar esse lançamento e/ou usuário.");
             }

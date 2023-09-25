@@ -5,6 +5,7 @@ using System.Security.Authentication;
 using System.Threading.Tasks;
 using ControleFacil.Api.Domain.Services.Interfaces;
 using ControleFacil.Api.DTO.UserDTO;
+using ControleFacil.Api.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,10 @@ namespace ControleFacil.Api.Controllers
             {
                 return Ok(await _userService.AuthUserLogin(userLoginRequest));
             }
+            catch(AuthenticationException ex)
+            {
+                return Unauthorized(ReturnModelUnathorizedException(ex));
+            }
             catch(Exception ex)
             {
                 return Problem(ex.Message);
@@ -45,9 +50,13 @@ namespace ControleFacil.Api.Controllers
             {
                 return Created("", await _userService.Add(userRequest, Guid.Empty));
             }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(ReturnModelBadRequestException(ex));
+            }
             catch(AuthenticationException ex)
             {
-                return Unauthorized(new { statusCode = 401, message = ex.Message });
+                return Unauthorized(ReturnModelUnathorizedException(ex));
             }
             catch(Exception ex)
             {
@@ -56,12 +65,20 @@ namespace ControleFacil.Api.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             try
             {
                 return Ok(await _userService.GetAll(Guid.Empty));
+            }
+            catch(AuthenticationException ex)
+            {
+                return Unauthorized(ReturnModelUnathorizedException(ex));
+            }
+            catch(NotFoundException ex)
+            {
+                return NotFound(ReturnModelNotFoundException(ex));
             }
             catch(Exception ex)
             {
@@ -78,9 +95,17 @@ namespace ControleFacil.Api.Controllers
             {
                 return Ok(await _userService.GetById(Guid.Empty, userId));
             }
-            catch
+            catch(AuthenticationException ex)
             {
-                return NotFound("Usuário não encontrado.");
+                return Unauthorized(ReturnModelUnathorizedException(ex));
+            }
+            catch(NotFoundException ex)
+            {
+                return NotFound(ReturnModelNotFoundException(ex));
+            }
+            catch(Exception ex)
+            {
+                return Problem(ex.Message);
             }
         }
 
@@ -93,9 +118,21 @@ namespace ControleFacil.Api.Controllers
             {
                 return Created("", await _userService.UpdateById(Guid.Empty, userRequest, userId));
             }
-            catch
+            catch (BadRequestException ex)
             {
-                return NotFound("Usuário não encontrado.");
+                return BadRequest(ReturnModelBadRequestException(ex));
+            }
+            catch(AuthenticationException ex)
+            {
+                return Unauthorized(ReturnModelUnathorizedException(ex));
+            }
+            catch(NotFoundException ex)
+            {
+                return NotFound(ReturnModelNotFoundException(ex));
+            }
+            catch(Exception ex)
+            {
+                return Problem(ex.Message);
             }
         }
 
@@ -110,9 +147,17 @@ namespace ControleFacil.Api.Controllers
 
                 return Ok("Usuário excluído com sucesso!");
             }
-            catch
+            catch(AuthenticationException ex)
             {
-                return NotFound("Usuário não encontrado.");
+                return Unauthorized(ReturnModelUnathorizedException(ex));
+            }
+            catch(NotFoundException ex)
+            {
+                return NotFound(ReturnModelNotFoundException(ex));
+            }
+            catch(Exception ex)
+            {
+                return Problem(ex.Message);
             }
         }
     }

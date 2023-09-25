@@ -7,6 +7,7 @@ using ControleFacil.Api.Domain.Models;
 using ControleFacil.Api.Domain.Repository.Interfaces;
 using ControleFacil.Api.Domain.Services.Interfaces;
 using ControleFacil.Api.DTO.ToPayDTO;
+using ControleFacil.Api.Exceptions;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ControleFacil.Api.Domain.Services.Class
@@ -25,6 +26,8 @@ namespace ControleFacil.Api.Domain.Services.Class
 
         public async Task<ToPayResponseDTO> Add(ToPayRequestDTO entity, Guid userId)
         {
+            ValidateTransaction(entity);
+
             ToPay toPay = _mapper.Map<ToPay>(entity);
 
             toPay.RegisterDate = DateTime.Now;
@@ -58,6 +61,8 @@ namespace ControleFacil.Api.Domain.Services.Class
 
         public async Task<ToPayResponseDTO> UpdateById(Guid id, ToPayRequestDTO entity, Guid userId)
         {
+            ValidateTransaction(entity);
+
             ToPay toPay = await SearchByIdLinkedWithUser(id, userId);
 
             var dataPay = _mapper.Map<ToPay>(entity);
@@ -66,21 +71,29 @@ namespace ControleFacil.Api.Domain.Services.Class
             dataPay.Id = toPay.Id;
             dataPay.RegisterDate = toPay.RegisterDate;
 
-            toPay = await _toPayRepository.Update(toPay);
+            dataPay = await _toPayRepository.Update(dataPay);
 
-            return _mapper.Map<ToPayResponseDTO>(toPay);
+            return _mapper.Map<ToPayResponseDTO>(dataPay);
         }
 
         private async Task<ToPay> SearchByIdLinkedWithUser(Guid id, Guid userId)
         {
             var toPay = await _toPayRepository.GetById(id);
 
-            if(toPay is null || toPay.UserId != userId)
+            if (toPay is null || toPay.UserId != userId)
             {
                 throw new Exception("Não foi possível encontrar esse lançamento e/ou usuário.");
             }
 
             return toPay;
+        }
+
+        private void ValidateTransaction(ToPayRequestDTO entity)
+        {
+            if(entity.OriginalValue < 0 || entity.PaidValue < 0)
+            {
+                throw new BadRequestException("Os campos não podem receber valores negativos.");
+            }
         }
     }
 }

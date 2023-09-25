@@ -18,7 +18,7 @@ namespace ControleFacil.Api.Domain.Services.Class
 
         public TokenService(IConfiguration configuration)
         {
-            _configuration = configuration; 
+            _configuration = configuration;
         }
 
         public string TokenGenerator(User user)

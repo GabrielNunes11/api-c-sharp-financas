@@ -7,6 +7,7 @@ using ControleFacil.Api.Domain.Models;
 using ControleFacil.Api.Domain.Repository.Interfaces;
 using ControleFacil.Api.Domain.Services.Interfaces;
 using ControleFacil.Api.DTO.ToReceiveDTO;
+using ControleFacil.Api.Exceptions;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ControleFacil.Api.Domain.Services.Class
@@ -25,6 +26,8 @@ namespace ControleFacil.Api.Domain.Services.Class
 
         public async Task<ToReceiveResponseDTO> Add(ToReceiveRequestDTO entity, Guid userId)
         {
+            ValidateTransaction(entity);
+
             ToReceive toReceive = _mapper.Map<ToReceive>(entity);
 
             toReceive.RegisterDate = DateTime.Now;
@@ -56,8 +59,10 @@ namespace ControleFacil.Api.Domain.Services.Class
             await _toReceiveRepository.Delete(toReceive);
         }
 
-        public async Task<ToReceiveResponseDTO> UpdateById(Guid id, ToReceiveResponseDTO entity, Guid userId)
+        public async Task<ToReceiveResponseDTO> UpdateById(Guid id, ToReceiveRequestDTO entity, Guid userId)
         {
+            ValidateTransaction(entity);
+
             ToReceive toReceive = await SearchByIdLinkedWithUser(id, userId);
 
             var dataReceive = _mapper.Map<ToReceive>(entity);
@@ -66,26 +71,29 @@ namespace ControleFacil.Api.Domain.Services.Class
             dataReceive.Id = toReceive.Id;
             dataReceive.RegisterDate = toReceive.RegisterDate;
 
-            toReceive = await _toReceiveRepository.Update(toReceive);
+            dataReceive = await _toReceiveRepository.Update(dataReceive);
 
-            return _mapper.Map<ToReceiveResponseDTO>(toReceive);
-        }
-
-        public Task<ToReceiveResponseDTO> UpdateById(Guid id, ToReceiveRequestDTO entity, Guid userId)
-        {
-            throw new NotImplementedException();
+            return _mapper.Map<ToReceiveResponseDTO>(dataReceive);
         }
 
         private async Task<ToReceive> SearchByIdLinkedWithUser(Guid id, Guid userId)
         {
             var toReceive = await _toReceiveRepository.GetById(id);
 
-            if(toReceive is null || toReceive.UserId != userId)
+            if (toReceive is null || toReceive.UserId != userId)
             {
                 throw new Exception("Não foi possível encontrar esse lançamento e/ou usuário.");
             }
 
             return toReceive;
+        }
+
+        private void ValidateTransaction(ToReceiveRequestDTO entity)
+        {
+            if(entity.OriginalValue < 0 || entity.ReceivedValue < 0)
+            {
+                throw new BadRequestException("Os campos não podem receber valores negativos.");
+            }
         }
     }
 }
